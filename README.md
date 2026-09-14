@@ -1,134 +1,626 @@
-# AlgoViz — The Algorithm Laboratory
+<div align="center">
 
-**Don't just watch. Understand the why.**
+# AlgoViz 2.0
 
-A local-first algorithm workspace by **Siva Charan K.G.** Built with the original React, JavaScript, React Router, Tailwind CSS and Vite/Rolldown stack. No backend, account, AI API, or paid service is required.
+### Don’t just watch. Understand the why.
 
-## Run locally
+An interactive algorithm laboratory for exploring execution,
+comparing strategies, and challenging assumptions.
 
-Use Node **22.12+** (Node 22 LTS recommended).
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Explore_AlgoViz-b9f67a?style=for-the-badge&logo=vercel&logoColor=black)](https://algoviz-2-0.vercel.app/)
+[![Source Code](https://img.shields.io/badge/Source_Code-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/Siva2583/Algoviz-2.0)
+
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES_Modules-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-Rolldown-646CFF?style=flat-square&logo=vite&logoColor=white)
+
+[Live App](https://algoviz-2-0.vercel.app/) ·
+[Sorting Lab](https://algoviz-2-0.vercel.app/lab) ·
+[Counterexample Lab](https://algoviz-2-0.vercel.app/counterexample) ·
+[Algorithm Library](https://algoviz-2-0.vercel.app/library)
+
+</div>
+
+---
+
+## Overview
+
+Watching an algorithm finish is not the same as understanding it.
+
+AlgoViz makes intermediate decisions visible: which elements are compared, how search boundaries move, why a branch is rejected, and where an incorrect assumption changes the answer.
+
+The project began as a collection of algorithm visualizations. Version 2.0 builds on that foundation with an interactive sorting laboratory, recorded-state replay, comparison mode, locally saved experiments, and a counterexample-based learning exercise.
+
+The central workflow is simple:
+
+```text
+Choose an input
+      ↓
+Predict what happens
+      ↓
+Execute and inspect
+      ↓
+Compare or change an assumption
+      ↓
+Experiment again
+```
+
+**AlgoViz is currently a client-side React application.** Built-in algorithms run in the browser. No backend, account, database service, or AI API is required.
+
+## Contents
+
+- [Try It in Two Minutes](#try-it-in-two-minutes)
+- [Key Features](#key-features)
+- [Algorithm Library](#algorithm-library)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Testing](#testing)
+- [Design Decisions](#design-decisions)
+- [Current Limitations](#current-limitations)
+- [Deployment](#deployment)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Author](#author)
+
+---
+
+## Try It in Two Minutes
+
+1. Open the [Sorting Lab](https://algoviz-2-0.vercel.app/lab).
+2. Choose a reverse-sorted or duplicate-heavy dataset.
+3. Play, pause, step backward, and drag the timeline to inspect a particular state.
+4. Enable **Compare** and choose another algorithm to compare recorded comparison counts on the same input.
+5. Visit the [Counterexample Lab](https://algoviz-2-0.vercel.app/counterexample), predict the answer, and inspect the decision that makes a buggy implementation fail.
+6. Save an interesting sorting experiment locally or export it as JSON.
+
+---
+
+## Key Features
+
+### 1. Sorting Laboratory
+
+Explore six sorting algorithms:
+
+**Bubble · Selection · Insertion · Merge · Quick · Heap**
+
+The laboratory provides:
+
+- Play and pause.
+- Restart and replay.
+- Step forward and backward.
+- A seekable execution timeline.
+- Final-state inspection after execution completes.
+- Array values, active indices, sorted indices, and pivot information where applicable.
+- Operation explanations and implementation counters.
+- Algorithm intuition, invariants, and complexity notes.
+
+Custom sorting inputs support **2–24 integers between −999 and 999**.
+
+Available dataset presets include:
+
+- Seeded random values.
+- Sorted values.
+- Reverse-sorted values.
+- Duplicate-heavy values.
+
+#### Keyboard controls
+
+| Key | Action |
+|---|---|
+| `Space` | Play or pause |
+| `←` | Step backward |
+| `→` | Step forward |
+
+Shortcuts apply when focus is outside form controls.
+
+> Stepping backward selects an earlier recorded state. It does not execute JavaScript in reverse.
+
+### 2. Algorithm Comparison
+
+Run two sorting strategies against the **same dataset** and inspect their complete-run comparison counts.
+
+This helps answer questions such as:
+
+- How does input order affect this implementation?
+- How do different algorithms behave on duplicate-heavy inputs?
+- Does this strategy perform fewer comparisons on this particular dataset?
+
+**Comparison mode is not a runtime benchmark.**
+
+Animation duration is not execution time. Side-by-side previews align by percentage of trace completion, not by equivalent semantic operations.
+
+Pass/call and exchange counters have implementation-specific meanings, so the comparison panel deliberately focuses on comparison counts.
+
+### 3. Counterexample Lab
+
+A working example does not prove an algorithm is correct.
+
+The counterexample lab demonstrates this through a curated sliding-window problem:
+
+> Find the shortest contiguous subarray whose sum is **at least** the target.
+
+The exercise uses positive integers and a positive target. It compares a reference implementation against a variant that records only exact matches.
+
+```text
+Input: [2, 3]
+Target: 4
+
+Reference result: 2
+Buggy result:     0
+```
+
+The difference comes from one condition:
+
+```js
+// Correct: every qualifying window can improve the answer.
+if (sum >= target) {
+  best = Math.min(best, right - left + 1);
+}
+
+// Buggy: larger qualifying sums are ignored.
+if (sum === target) {
+  best = Math.min(best, right - left + 1);
+}
+```
+
+You can:
+
+- Predict the correct result.
+- Compare the two outputs.
+- Inspect the first recorded divergence.
+- Search for a smaller failing input within a bounded domain.
+
+The search enumerates:
+
+- Arrays of length **1–3**.
+- Values between **1 and 4**.
+- Targets between **1 and 8**.
+
+The result is the first failure in the defined enumeration order—not a proof of global minimality, a general-purpose bug finder, or formal verification.
+
+### 4. Local Experiments
+
+Keep interesting sorting inputs without creating an account:
+
+- Save the latest **six experiments** in the current browser.
+- Restore the selected algorithm, input, and frame position.
+- Export experiments as versioned JSON.
+- Import validated experiment files up to **16 KB**.
+
+Saved experiments use `localStorage`.
+
+They do not automatically sync between devices or domains, and browser storage can be cleared. JSON export provides a portable backup.
+
+### 5. Consistent Learning Workspace
+
+The overview, dedicated labs, and algorithm modules share:
+
+- Navigation and page structure.
+- Typography, colors, panels, and controls.
+- Module breadcrumbs and an experiment switcher.
+- **Visualize / Learn the concept** views on individual modules.
+- Responsive layouts.
+
+Learning notes include:
+
+- Concept explanations.
+- Numbered execution steps.
+- Dry-run examples.
+- Pseudocode.
+- Time and space complexity.
+- Common mistakes and pattern-recognition guidance.
+
+On smaller screens, the N-Queens board appears before its console, and the pathfinding grid scrolls horizontally rather than compressing its cells.
+
+---
+
+## Algorithm Library
+
+The library contains **12 module entries**. Some entries contain multiple algorithms.
+
+| Module | Implemented Behavior |
+|---|---|
+| **Simple Sorts** | Bubble, Selection, and Insertion Sort |
+| **Efficient Sorts** | Merge, Quick, and Heap Sort |
+| **Binary Search** | Iterative search with left, middle, and right bounds |
+| **Pathfinder** | BFS and DFS on a grid with editable walls |
+| **Tree Traversals** | Preorder, inorder, and postorder traversal |
+| **N-Queens** | Backtracking visualization and an interactive placement board |
+| **Two Pointers** | String/palindrome-style converging-pointer checks |
+| **Fast & Slow Pointers** | Move Zeroes using read/write-style pointers |
+| **Binary Search Variants** | First and last occurrence search |
+| **Prefix Sum** | Prefix construction and inclusive range-sum queries |
+| **Sliding Window** | Shortest qualifying positive-number window with sum ≥ target |
+| **Merge Intervals** | Sorting and merging overlapping intervals |
+
+### Important distinctions
+
+- Tree inputs represent an **array-indexed binary tree**, not automatic BST insertion.
+- The Fast & Slow module demonstrates **Move Zeroes**, not Floyd’s cycle detection.
+- BFS finds a shortest path on the unweighted grid.
+- DFS discovers a path that is **not necessarily shortest**.
+- Sorting routes use the shared laboratory; the other modules retain their algorithm-specific execution implementations.
+
+---
+
+## Architecture
+
+### Sorting: Execution Is Separate from Playback
+
+```text
+Input + algorithm selection
+            │
+            ▼
+Input validation
+            │
+            ▼
+Bounded synchronous algorithm execution
+            │
+            ▼
+Recorded frames with stable element identities
+            │
+            ▼
+Playback reducer
+{ cursor, length, playing }
+            │
+            ├── Array renderer
+            ├── State inspector
+            ├── Operation explanation
+            └── Timeline and transport controls
+```
+
+The algorithm generates frames before playback begins. React renders the frame selected by the playback cursor.
+
+This separation allows the same recorded execution to be paused, replayed, inspected, or revisited without rerunning the algorithm for every playback action.
+
+Element IDs are assigned from original input positions and travel with their elements during sorting. Equal values remain distinguishable, and repeated runs of the same implementation and input produce reproducible traces.
+
+A React effect schedules playback advances and cleans up its timer when the effect is replaced or the component unmounts.
+
+### Counterexamples: Differential Execution
+
+```text
+Bounded input enumeration
+            │
+            ├── Reference implementation → result + trace
+            │
+            └── Buggy variant            → result + trace
+                              │
+                              ▼
+                    Detect result mismatch
+                              │
+                              ▼
+                   Inspect first divergence
+```
+
+The reference and buggy variant are predefined implementations. The application does not interpret arbitrary pasted code.
+
+### Persistence
+
+```text
+Algorithm + input + cursor
+            │
+            ├── localStorage
+            └── Versioned JSON export/import
+```
+
+The shared visual system applies across the project, but **not every algorithm module has been migrated to the sorting playback reducer**.
+
+---
+
+## Technology Stack
+
+| Area | Technology |
+|---|---|
+| UI | React 19 |
+| Language | JavaScript / JSX |
+| Routing | React Router DOM 7 |
+| Styling | Tailwind CSS 3 and scoped custom CSS |
+| Icons | Lucide React |
+| Build tooling | Vite using the `rolldown-vite` package alias |
+| State | React hooks, local component state, and a sorting playback reducer |
+| Local persistence | Browser `localStorage` and JSON files |
+| Tests | Node.js `node:test` and `node:assert/strict` |
+| Static checks | ESLint with React hooks and refresh rules |
+| CI | GitHub Actions |
+| Hosting | Vercel |
+
+No Next.js, Redux, external animation framework, or application backend is required.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js 22.12 or newer**.
+- npm, included with Node.js.
+
+Node 22 matches the checked-in `.nvmrc` and CI configuration.
+
+### Installation
 
 ```bash
+git clone https://github.com/Siva2583/Algoviz-2.0.git
+cd Algoviz-2.0
 npm ci
 npm run dev
 ```
 
-Open the address printed by Vite. The development server binds to all interfaces for hosted previews; do not expose it to an untrusted public network. Production deployments should serve `dist`, not the development server.
+Open the URL printed by Vite, usually:
+
+```text
+http://localhost:5173
+```
+
+If you downloaded a ZIP instead, extract it and run the commands from the folder containing `package.json`.
+
+> Do not open `index.html` directly or use VS Code Live Server. Vite is needed to process the application’s modules and JSX.
+
+### Available Commands
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the development server |
+| `npm run build` | Generate the production application in `dist/` |
+| `npm run preview` | Preview the production build locally |
+| `npm test` | Run algorithm, reducer, validation, and regression tests |
+| `npm run lint` | Run repository-wide ESLint checks |
+| `npm run lint:lab` | Check the new workspace and route configuration |
+
+### Windows / PowerShell
+
+If PowerShell reports that script execution is disabled:
+
+```powershell
+npm.cmd ci
+npm.cmd run dev
+```
+
+If `npm` is not recognized, install Node.js and restart your terminal or VS Code.
+
+No environment variables or API keys are required. The development server binds to all interfaces for hosted previews; use it only in a trusted development environment.
+
+---
+
+## Project Structure
+
+```text
+Algoviz-2.0/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── docs/
+│   ├── INTERVIEW-GUIDE.md
+│   └── VERIFICATION.md
+├── public/
+├── src/
+│   ├── lab/
+│   │   ├── Shell.jsx
+│   │   ├── ModuleFrame.jsx
+│   │   ├── Overview.jsx
+│   │   ├── SortingLab.jsx
+│   │   ├── Counterexample.jsx
+│   │   ├── engine.js
+│   │   ├── lab.css
+│   │   ├── modules.css
+│   │   └── lesson.css
+│   ├── modules/
+│   │   ├── core/
+│   │   └── patterns/
+│   ├── components/
+│   ├── context/
+│   ├── pages/
+│   │   └── Home.jsx
+│   ├── constants.js
+│   └── main.jsx
+├── tests/
+│   └── engine.test.js
+├── package.json
+├── package-lock.json
+├── vite.config.js
+└── vercel.json
+```
+
+### Key Files
+
+| File | Responsibility |
+|---|---|
+| `src/lab/engine.js` | Algorithm registry, validation, playback reducer, dataset generation, and counterexample helpers |
+| `src/lab/SortingLab.jsx` | Sorting workspace, comparison, transport controls, and experiment persistence |
+| `src/lab/Counterexample.jsx` | Prediction exercise and differential-execution interface |
+| `src/lab/Shell.jsx` | Shared navigation and page shell |
+| `src/lab/ModuleFrame.jsx` | Module headers, experiment switching, and view controls |
+| `src/pages/Home.jsx` | Lazy-loaded application routes |
+| `tests/engine.test.js` | Correctness, reproducibility, validation, and regression tests |
+
+The original algorithm generators remain under
+`src/modules/core/algorithm/sorting/algorithms/`, including some non-sorting logic. That naming is legacy organization and is a candidate for incremental cleanup.
+
+---
+
+## Testing
+
+The current automated suite contains **14 test groups**, including generated cases.
+
+### Covered Areas
+
+**Sorting**
+- Expected final ordering.
+- Original input preservation.
+- Reproducible frames.
+- Final element-ID uniqueness.
+- Edge cases and 20 seeded datasets per sorting algorithm.
+
+**Playback**
+- Cursor bounds.
+- Completion-state retention.
+- Replay behavior.
+- Pausing when seeking.
+
+**Validation and Regression**
+- Invalid sorting inputs.
+- Reproducible dataset generation.
+- Sliding-window ≥-target regression.
+- Reproducible counterexample search.
+- Window reference checked against a brute-force oracle for **64 arrays × 12 targets**.
+- Pathfinder input preservation, repeatability, reachability, and a shortest-path case.
+- Prefix-sum full-range calculation and invalid-range handling.
+
+Run the checks with:
 
 ```bash
-npm test           # 14 Node-native test groups, including generated cases
-npm run lint       # whole repository
-npm run lint:lab   # strict checks on the new workspace
+npm test
+npm run lint
 npm run build
-npm run preview
 ```
 
-## What's new
+The checked-in GitHub Actions workflow runs these checks after `npm ci`.
 
-### Sorting laboratory — `/lab`
+Additional browser smoke checks have covered playback, saving/importing experiments, counterexample interactions, module controls, and responsive learning views.
 
-- Six existing algorithm generators: bubble, selection, insertion, merge, quick and heap.
-- Play/pause, restart, step forward/back and a seekable execution timeline.
-- Final states stay visible. Playback timers are cleaned up on pause/unmount.
-- Live array, active/sorted indices, pivot, explanation and counters.
-- Comparison mode uses the same input and **actual recorded comparison counts**.
-- Seeded random, sorted, reverse and duplicate-heavy datasets.
-- Input validation: 2–24 integers, from −999 to 999. This intentionally bounds snapshot memory.
-- Keyboard shortcuts: Space to play/pause, left/right arrows to step outside form controls.
-- Save up to six experiments to this browser; restore the selected frame.
-- Export/import versioned JSON experiments without an account.
-- Original sorting tutorials and pseudocode remain available in expandable notes.
+**Testing boundaries:** these checks are not exhaustive correctness proofs, a repository-contained automated browser regression suite, or a WCAG certification.
 
-### Counterexample lab — `/counterexample`
+See [`docs/VERIFICATION.md`](docs/VERIFICATION.md) for more detail.
 
-A curated differential-testing case study: shortest positive-number window with sum **at least** a target. A reference implementation is compared with a buggy exact-match variant. Predict the result, inspect the first divergence, or search for a smaller failing input.
+---
 
-The bounded search enumerates positive arrays of length 1–3 with values 1–4 and targets 1–8. Its result is first by enumeration order, not a general proof of global minimality. There is no arbitrary-code execution or AI interpretation.
+## Design Decisions
 
-### Preserved library — `/library`
+### Preserve Working Algorithm Code
 
-All twelve module routes remain. Sorting routes use the new laboratory. The remaining modules retain their algorithm-specific renderers inside the same shared workspace:
+The sorting laboratory reuses existing generators instead of replacing every implementation. Playback and inspection were improved around that foundation.
 
-- Binary search; positional binary-tree preorder/inorder/postorder.
-- N-Queens solver and interactive board.
-- BFS and DFS pathfinding with editable walls.
-- Palindrome/converging pointers; Move Zeroes; first/last occurrence.
-- Prefix sums; shortest qualifying sliding window; merge intervals.
+### Prefer Explicit Playback State
 
-**Not implemented:** weighted Dijkstra, Floyd cycle detection, rotated-array search, tree level-order traversal, arbitrary-code execution, shared accounts, cloud persistence, Web Workers, compact event streaming.
+A reducer makes transport transitions easier to reason about and test than unrelated booleans and duplicated animation loops.
 
-## Architecture
+### Use Full Frames—for Now
 
-```text
-Validated input + algorithm selection
-            ↓
-Existing algorithm generator (bounded synchronous execution)
-            ↓
-Deterministic full-state frames
-            ↓
-Playback reducer: cursor / length / playing
-            ↓
-React array renderer + inspector + explanation
-            ↘
-             localStorage / versioned JSON export
-```
+Full recorded frames make inspection and rewind straightforward.
 
-The counterexample lab uses two deterministic window traces and a bounded exhaustive input search. The existing library has not been fully migrated to the playback reducer.
+The trade-off is memory: copying an entire array for many operations can produce substantial trace storage. Sorting input limits are intentional, not an indication that the engine supports arbitrarily large datasets.
 
-```text
-src/lab/
-  Shell.jsx           Navigation and shared workspace shell
-  Overview.jsx        Landing page and module directory
-  SortingLab.jsx      Interactive laboratory and experiment persistence
-  Counterexample.jsx  Prediction and differential-execution case study
-  engine.js           Registry, validation, reducer, datasets, window traces
-  lab.css             Scoped responsive workspace styles
-src/modules/          Preserved algorithm pages, generators and tutorial data
-src/pages/Home.jsx    Lazy-loaded route configuration
-src/components/      Original reusable components
-tests/engine.test.js Correctness, replay, validation and regression checks
-```
+### Compare Operations Honestly
 
-## Unified interface
+Animation speed is controlled for learning, so it cannot serve as an execution-time measurement. Comparison mode uses recorded comparison counts rather than presenting misleading timing results.
 
-The overview, sorting lab, counterexample lab and all ten other modules share the same navigation, surface colors, typography, header hierarchy and accents. `src/lab/ModuleFrame.jsx` supplies module breadcrumbs, experiment switching and Visualize/Learn controls. Algorithm-specific diagrams and execution behavior are preserved.
+### Keep Persistence Local
 
-Learning notes use a shared, responsive `TutorialTab`: section navigation, numbered steps, dry-run timelines, code panels and complexity cards. On smaller screens the N-Queens board appears before the console and the pathfinding grid scrolls horizontally instead of compressing its cells. All four navigation destinations remain visible on mobile.
+Local saves and JSON export provide useful experiment persistence without introducing authentication or backend infrastructure before it is necessary.
 
-## Correctness and reliability improvements
+### Load Modules on Demand
 
-- Fixed the documented ≥-target sliding-window mismatch.
-- Stable input-index IDs replace random IDs in all six sorting generators.
-- Pathfinder computes on an isolated graph, not React state.
-- Removed the misleading BFS-as-Dijkstra option.
-- Pathfinder waits for actual completion, reports unreachable goals, measures path edges, and cleans up timers on navigation.
-- Prefix-sum range validation now reports invalid ranges.
-- Sorting/tree completion no longer intentionally resets final results to input.
-- Route splitting, not a framework migration, reduces initial bundle cost.
-- Updated dependency lockfile within the existing stack.
-- Removed thousands of accidental nonbreaking-space indentation violations.
+Visualization routes are lazy-loaded so the application does not need to download every module’s JavaScript at startup.
 
-## Measurements and honest limitations
+---
 
-The audit baseline built a ~508 kB minified initial JavaScript bundle. The new lazy-routed build is about **249 kB**, before route chunks. Size varies with later changes. This is a bundle-size comparison, not a measured page-load speedup.
+## Current Limitations
 
-The comparison lab is **not a benchmark suite**. Animation duration is not execution time. Side-by-side frames align by trace percentage, not equivalent operations. Pass/call and exchange counters remain implementation-specific, so comparisons use comparison counts only. Heap sort's recursive heapify uses call-stack space.
+AlgoViz is an evolving learning project. Its boundaries are explicit:
 
-Full snapshots are retained for clarity, bounded to 24 input values. No claims of handling thousands of elements. The classic non-sorting pages still use their legacy playback architecture; broader cancellation, validation and accessibility work remains. Existing tutorial prose should be reviewed before treating it as authoritative curriculum.
+- **No arbitrary-code execution.** Users cannot paste JavaScript, Java, or Python and generate a trace.
+- **No AI tutor.** Explanations come from built-in messages and tutorial content.
+- **No backend or cloud synchronization.** Saved experiments belong to the current browser and origin.
+- **No Web Worker execution yet.** Sorting traces are generated synchronously on the main thread.
+- **No large-input scalability claim.** The sorting lab uses full snapshots and a 24-element input cap.
+- **Playback migration is incomplete.** Non-sorting modules still have separate execution and state-handling implementations.
+- **Not a performance benchmarking platform.** There are no runtime distributions or attributed heap-memory measurements.
+- **Exported cursors are implementation-dependent.** Experiments do not archive an entire engine version; future changes to frame order can affect where an old cursor points.
+- **Accessibility work is ongoing.** Responsive layouts and keyboard controls do not constitute full accessibility compliance.
+- **Tutorial material remains open to correction.** It is educational guidance, not a formally reviewed curriculum.
 
-ESLint retains strict rules for the new lab. `react-hooks/set-state-in-effect` is explicitly disabled only for legacy `src/modules/**/*.jsx`, where editable inputs still synchronize to preview state. This is documented migration debt, not a claim those pages have all been refactored.
+Weighted Dijkstra, Floyd cycle detection, rotated-array search, and tree level-order traversal are **not currently implemented features**.
 
-Saved data stays on the current origin/device and may be cleared by the browser. Export is the portable backup. Imported files are bounded to 16 KB and validated before replay. Do not put secrets in experiments.
+The ESLint configuration also explicitly disables `react-hooks/set-state-in-effect` for legacy `src/modules/**/*.jsx`, where input-to-preview synchronization still uses effects. New lab code retains the stricter rule.
+
+---
 
 ## Deployment
 
-Deploy `npm run build` output (`dist`) to a static host. Vercel SPA fallback configuration is included in `vercel.json`. Other hosts must rewrite application routes to `index.html` while serving assets normally. No environment variables required.
+### Live Application
 
-CI runs a clean install, tests, full lint and production build. See [the interview guide](docs/INTERVIEW-GUIDE.md) and [verification notes](docs/VERIFICATION.md).
+**https://algoviz-2-0.vercel.app/**
 
-## Next steps—not prerequisites for interviewing
+### Vercel Configuration
 
-1. Migrate one additional algorithm family to shared playback.
-2. Add trace checkpoints/deltas and worker execution if raising input limits.
-3. Expand counterexamples with independently validated reference implementations.
-4. Only introduce persistence services when cross-device experiments become a real need.
+| Setting | Value |
+|---|---|
+| Framework preset | Vite |
+| Install command | `npm ci` |
+| Build command | `npm run build` |
+| Output directory | `dist` |
+| Node.js | 22.x |
+
+The included `vercel.json` configures the single-page application fallback so routes such as `/lab` work when opened directly.
+
+Other static hosts need an equivalent route fallback while continuing to serve assets normally.
+
+---
+
+## Roadmap
+
+The next steps focus on strengthening the existing learning workflow:
+
+- [ ] Migrate another algorithm family to the shared playback model.
+- [ ] Introduce compact trace events and checkpoints.
+- [ ] Add worker execution before increasing input limits.
+- [ ] Expand curated counterexamples with independently checked reference implementations.
+- [ ] Improve keyboard, screen-reader, and touch interaction coverage.
+- [ ] Add an automated browser regression suite.
+- [ ] Gradually reorganize algorithm files by domain.
+
+These are planned improvements, not current capabilities.
+
+Backend services or AI would only be added if they meaningfully improve experimentation, explanation, or reproducibility.
+
+---
+
+## Contributing
+
+Useful contributions include:
+
+- A reproducible correctness bug.
+- A clearer algorithm explanation.
+- A failing regression test.
+- An accessibility improvement.
+- A focused rendering or playback fix.
+
+For bug reports, include:
+
+1. The module or route.
+2. The exact input.
+3. Expected behavior.
+4. Actual behavior.
+5. Reproduction steps.
+
+Before submitting a change:
+
+```bash
+npm test
+npm run lint
+npm run build
+```
+
+Keep changes focused. Avoid mixing algorithm-semantic changes and visual redesigns in the same patch unless necessary.
+
+---
+
+## Author
+
+**Siva Charan K.G.**
+
+[GitHub](https://github.com/Siva2583) ·
+[LinkedIn](https://www.linkedin.com/in/siva-charan-kg-72a900284/) ·
+[Live AlgoViz](https://algoviz-2-0.vercel.app/)
+
+---
+
+<div align="center">
+
+**Change the input. Question the outcome. Understand the algorithm.**
+
+</div>
