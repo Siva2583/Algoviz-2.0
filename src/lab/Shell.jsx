@@ -86,7 +86,7 @@ export default function Shell({ children }) {
         </div>
         <a
           className="av-github"
-          href="https://github.com/Siva2583/Algoviz"
+          href="https://github.com/Siva2583/Algoviz-2.0"
           target="_blank"
           rel="noreferrer"
         >
